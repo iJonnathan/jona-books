@@ -16,9 +16,9 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   storageBucket: 'jonabooks.appspot.com'
 });
-const buckete = admin.storage().bucket()
-const defaultBucketName = Object.keys(buckete);
-console.log("bukete: "+defaultBucketName)
+const bucket = admin.storage().bucket()
+//const defaultBucketName = Object.keys(buckete);
+//console.log("bukete: "+defaultBucketName)
 
 //admin.initializeApp(firebaseConfig);
 // admin.initializeApp({
@@ -62,40 +62,66 @@ app.listen(3000, ()=>{
     console.log("listeniing at port:3000")
 });
 
-function uploadBook(file){
-    const blob = buckete.file(file.originalname)
-        
-    const blobWriter = blob.createWriteStream({
-        metadata: {
-            contentType: file.mimetype
-        }
-    })
-    blobWriter.on('error', (err) => {
-        console.log(err)
-        return false
-    })
-    blobWriter.on('finish', () => {
-        return true
-    })
-    blobWriter.end(file.buffer)
-}
 app.get('/books', async function (req, res, next){
     const options = {
         destination: './books_uploads/1911 History of Vermilion County IL Vol-1a.pdf',
     };
-    await buckete.file('1911 History of Vermilion County IL Vol-1a.pdf').download(options);
+    await bucket.file('1911 History of Vermilion County IL Vol-1a.pdf').download(options);
      //storage.bucket(bucketName).file(fileName).download(options);
+     console.log("get_books_ok")
 
 
 })
-app.post('/books', upload.any(), async (req, res, next)  => {
+app.get('/books_info', async function (req, res, next){
     
+    async function listFiles() {
+        // Lists files in the bucket
+        const [files] = await bucket.getFiles();
+      
+        console.log('Files:');
+        files.forEach(file => {
+          console.log(file.name);
+          console.log(Object.keys(file));
+        });
+      }
+      
+      listFiles().catch(console.error);
+    
+
+
+})
+
+function uploadFile(file){
+
+    var filename = './books_uploads/1911 History of Vermilion County IL Vol-1a.pdf';
+    bucket.upload(filename, {
+        destination:"books/"+file.originalname,
+    })
+    return false
+
+    // const blob = bucket.file(file.originalname)
+
+    // const blobWriter = blob.createWriteStream({
+    //     metadata: {
+    //         contentType: file.mimetype
+    //     }
+    // })
+    // blobWriter.on('error', (err) => {
+    //     console.log(err)
+    //     return false
+    // })
+    // blobWriter.on('finish', () => {
+    //     return true
+    // })
+    // blobWriter.end(file.buffer)
+}
+app.post('/books', upload.any(), async (req, res, next)  => {
     if(!req.files) {
         res.status(400).send("Error: No files found")
     } else {
         await req.files.forEach(async file => {
 
-            var val = await uploadBook(file)
+            var val = await uploadFile(file)
             if(val) res.send({ status: false, message: 'No file uploaded'});
             else console.log("book "+file.originalname+" uploaded")
         });
@@ -103,36 +129,5 @@ app.post('/books', upload.any(), async (req, res, next)  => {
         res.status(200).send("books uploaded!")
     }
     
-    // var stream = req.files[0].buffer
-    // console.log(stream);
-    
-    // var storage = mega.storage({email: 'ijonnathanesteban@gmail.com', password: 'q estas pelotudo'}, function(err) {
-    //      console.log(storage.files)
-    //     // storage.mounts
-    //   })
-        // if(!req.files) {
-        //     res.send({
-        //         status: false,
-        //         message: 'No file uploaded'
-        //     });
-        // } else {
-        //     console.log("entrando" + JSON.stringify(req.query))
-        //     //Use the name of the input field (i.e. "avatar") to retrieve the uploaded file
-        //     let avatar = req.files.avatar;
-        //     console.log(avatar.name)
-        //     //Use the mv() method to place the file in upload directory (i.e. "uploads")
-        //     avatar.mv('./uploads/' + avatar.name);
-
-        //     //send response
-        //     res.send({
-        //         status: true,
-        //         message: 'File is uploaded',
-        //         data: {
-        //             name: avatar.name,
-        //             mimetype: avatar.mimetype,
-        //             size: avatar.size
-        //         }
-        //     });
-        // }
     
 });
