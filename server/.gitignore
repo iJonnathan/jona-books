@@ -2,6 +2,7 @@
 node_modules
 /dist
 books_uploads
+jonabooks_firebasekey.json
 
 # local env files
 .env.local

@@ -1,32 +1,9 @@
 const express = require("express")
-
-//const fileUpload = require('express-fileupload')
-//const mongoose = require("mongoose")
 const bodyParser = require("body-parser")
 const multer = require("multer")
-
-// const firebase = require('firebase/app').default;
-// require('firebase/auth');
-// require('firebase/database');
-
+const hash = require('object-hash');
 const admin = require('firebase-admin')
-var serviceAccount = require("./jonabooks_firebasekey.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  storageBucket: 'jonabooks.appspot.com'
-});
-const bucket = admin.storage().bucket()
-//const defaultBucketName = Object.keys(buckete);
-//console.log("bukete: "+defaultBucketName)
-
-//admin.initializeApp(firebaseConfig);
-// admin.initializeApp({
-//     credential: admin.credential.cert(""),
-//     storageBucket: "jonabooks.appspot.com"
-//   })
-
-// Cloud storage
+const serviceAccount = require("./jonabooks_firebasekey.json");
 
 // create our express app
 const app = express()
@@ -34,33 +11,19 @@ const app = express()
 app.use(bodyParser.json())
 app.use(express.urlencoded({
     extended: true
-  }))
+}))
 const cors = require('cors');
 app.use(cors());
-//app.use(fileUpload())
 
-// routes
-app.get("/", (req,res)=>{
-    res.send("my home page dey show sha")
-})
-// multer
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, 'books_uploads/')
-    },
-    filename: function (req, file, cb) {
-      cb(null, file.originalname)
-    }
-  })
-//const upload = multer({storage: storage})
-const upload = multer({
-    storage: multer.memoryStorage()
-})
-//app.use(upload.any())
-//start server
-app.listen(3000, ()=>{
-    console.log("listeniing at port:3000")
+// Cloud storage
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: 'jonabooks.appspot.com'
 });
+const bucket = admin.storage().bucket()
+const upload = multer({storage: multer.memoryStorage()})
+const db = admin.firestore();
+
 
 app.get('/books', async function (req, res, next){
     const options = {
@@ -91,43 +54,46 @@ app.get('/books_info', async function (req, res, next){
 
 })
 
-function uploadFile(file){
-
-    var filename = './books_uploads/1911 History of Vermilion County IL Vol-1a.pdf';
-    bucket.upload(filename, {
-        destination:"books/"+file.originalname,
+function uploadFile(file, index, body){
+    var book ={
+        name : body.name[index],
+        author : body.author[index],
+        category : body.category[index]
+    }
+    /*GENERO LA RUTA DEPENDIENDO SI ES PDF O IMAGEN*/
+    var extension = file.mimetype.split('/')[1];
+    var pathDestinyFile = extension=='pdf' ? "books/"+book.name: "covers/"+book.name
+    
+    const blob = bucket.file(pathDestinyFile)
+    const blobWriter = blob.createWriteStream({metadata: {contentType: file.mimetype}});
+    blobWriter.on('error', (err) => {
+        console.log(err)
+        return false
     })
-    return false
-
-    // const blob = bucket.file(file.originalname)
-
-    // const blobWriter = blob.createWriteStream({
-    //     metadata: {
-    //         contentType: file.mimetype
-    //     }
-    // })
-    // blobWriter.on('error', (err) => {
-    //     console.log(err)
-    //     return false
-    // })
-    // blobWriter.on('finish', () => {
-    //     return true
-    // })
-    // blobWriter.end(file.buffer)
+    blobWriter.on('finish', async () => {
+        let key = hash(book);
+        await db.collection('books').doc(key).set(book);
+        return true
+    })
+    blobWriter.end(file.buffer)
 }
 app.post('/books', upload.any(), async (req, res, next)  => {
     if(!req.files) {
         res.status(400).send("Error: No files found")
     } else {
-        await req.files.forEach(async file => {
+        await req.files.forEach(async (file,index) => {
 
-            var val = await uploadFile(file)
+            var val = await uploadFile(file, parseInt(index/2), req.body)
+
+
             if(val) res.send({ status: false, message: 'No file uploaded'});
             else console.log("book "+file.originalname+" uploaded")
         });
-        console.log("all books uploaded!")
+        console.log("all books uploaded!")  
         res.status(200).send("books uploaded!")
     }
-    
-    
+});
+
+app.listen(3000, ()=>{
+    console.log("listeniing at port:3000")
 });

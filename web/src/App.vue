@@ -1,6 +1,15 @@
 <template>
   <div id="app">
     <Home/>
+          <!-- <a class="waves-effect waves-light btn-small" id="btn1" ><i class="material-icons">delete</i></a>
+
+    <select id="select1" v-model="category">
+      <option value="" selected>All</option>
+      <option value="1">Option 1</option>
+      <option value="2">Option 2</option>
+      <option value="3">Option 3</option>
+    </select>
+    <label>Categoría</label> -->
   </div>
 </template>
 <script>
@@ -12,9 +21,21 @@ export default {
   components: {
     Home
   },
+  data(){
+    return{
+      category:'3'
+    }
+  },
   mounted () {
-    M.AutoInit()
-  }
+    M.AutoInit();
+  },
+//   methods:{
+// change(){
+//       alert()
+//       document.getElementById('select1').value = '1'
+//       //$("#select1").val;
+//     },
+//   }
 }
 </script>
 <style lang="scss">
