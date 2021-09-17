@@ -1,21 +1,23 @@
 <template>
-  <div class="admin">
-    <div class="container" style="width:100%">
-      <div class="row">
+  <div class="admin ">
+    <div class="container" style="width: 100%; max-width:initial; margin:0">
+      <div class="row ">
         <div class="col s12">
           <ul class="tabs">
-            <li class="tab col s4"><a class="active" href="#admin_books">Libros</a></li>
-            <li class="tab col s4"><a href="#admin_categories">Categorías</a></li>
-            <li class="tab col s4"><a href="#admin_users">Usuarios</a></li>
+            <li class="tab col s4"><a  href="#admin_books">Libros</a></li>
+            <li class="tab col s4"><a  href="#admin_categories">Categorías</a></li>
+            <li class="tab col s4"><a class="active" href="#admin_users">Usuarios</a></li>
           </ul>
         </div>
         <div id="admin_books" class="col s12">
           <UploadBooks/>
         </div>
         <div id="admin_categories" class="col s12">
+          <Bookshelft/>
           
         </div>
         <div id="admin_users" class="col s12">
+          <PdfViewer/>
           
         </div>
       </div>
@@ -25,11 +27,13 @@
 <script>
 // @ is an alias to /src
 import UploadBooks from '@/components/UploadBooks.vue'
+import Bookshelft from '@/components/Bookshelft.vue'
+import PdfViewer from "@/components/PdfViewer.vue";
 
 export default {
   name: 'Admin',
   components: {
-    UploadBooks
+    UploadBooks,Bookshelft, PdfViewer
   }
 
 }

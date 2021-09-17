@@ -26,73 +26,109 @@ const db = admin.firestore();
 
 
 app.get('/books', async function (req, res, next){
-    const options = {
-        destination: './books_uploads/1911 History of Vermilion County IL Vol-1a.pdf',
-    };
-    await bucket.file('1911 History of Vermilion County IL Vol-1a.pdf').download(options);
-     //storage.bucket(bucketName).file(fileName).download(options);
-     console.log("get_books_ok")
+    db.collection('books').get()
+    .then((collection) => {
+      var books = {};
+      collection.forEach((doc) => {
+        //console.log(doc.id, '=>', doc.data());
+        var book = doc.data()
+        book.id = doc.id
+        book.coverpath = ""
+        books[doc.id] = book;
+      });
+      res.status(200).send(books)
+    })
+    .catch((err) => {
+      console.log('Error getting documents', err);
+      res.send({ status: false, message: 'Error getting documents'});
+    });
 
 
 })
-app.get('/books_info', async function (req, res, next){
-    
-    async function listFiles() {
-        // Lists files in the bucket
-        const [files] = await bucket.getFiles();
-      
-        console.log('Files:');
-        files.forEach(file => {
-          console.log(file.name);
-          console.log(Object.keys(file));
-        });
-      }
-      
-      listFiles().catch(console.error);
-    
+app.get('/coverbook', async function (req, res, next){
 
+    const [files] = await bucket.getFiles({ prefix: 'covers/'+req.query.id, delimiter: '', });
+
+    var stream = files[0].createReadStream();
+    res.writeHead(200, {'Content-Type': 'image/png' });
+    stream.on('data', function (data) {
+        res.write(data);
+    });
+    stream.on('error', function (err) {
+        console.log('error reading stream', err);
+    });
+    stream.on('end', function () {
+        res.end();
+    });
 
 })
+app.get('/book', async function (req, res, next){
+    console.log(req.query.id)
+    const [files] = await bucket.getFiles({ prefix: 'books/'+req.query.id, delimiter: '', });
+    console.log(files)
+    var stream = files[0].createReadStream();
+    res.writeHead(200, {"Content-Type": "application/pdf"});
+    stream.on('data', function (data) {
+        res.write(data);
+    });
+    stream.on('error', function (err) {
+        console.log('error reading stream', err);
+    });
+    stream.on('end', function () {
+        res.end();
+    });
 
-function uploadFile(file, index, body){
-    var book ={
-        name : body.name[index],
-        author : body.author[index],
-        category : body.category[index]
-    }
-    /*GENERO LA RUTA DEPENDIENDO SI ES PDF O IMAGEN*/
-    var extension = file.mimetype.split('/')[1];
-    var pathDestinyFile = extension=='pdf' ? "books/"+book.name: "covers/"+book.name
-    
-    const blob = bucket.file(pathDestinyFile)
-    const blobWriter = blob.createWriteStream({metadata: {contentType: file.mimetype}});
-    blobWriter.on('error', (err) => {
-        console.log(err)
-        return false
-    })
-    blobWriter.on('finish', async () => {
-        let key = hash(book);
-        await db.collection('books').doc(key).set(book);
-        return true
-    })
-    blobWriter.end(file.buffer)
-}
+})
 app.post('/books', upload.any(), async (req, res, next)  => {
     if(!req.files) {
         res.status(400).send("Error: No files found")
     } else {
-        await req.files.forEach(async (file,index) => {
+        let promises = [];
+        req.files.forEach((file, index) => {
+            index = parseInt(index/2)
+            var book ={
+                name : req.body.name[index],
+                author : req.body.author[index],
+                category : req.body.category[index]
+            }
+            let key = hash(book);
 
-            var val = await uploadFile(file, parseInt(index/2), req.body)
-
-
-            if(val) res.send({ status: false, message: 'No file uploaded'});
-            else console.log("book "+file.originalname+" uploaded")
+            /*GENERO LA RUTA DEPENDIENDO SI ES PDF O IMAGEN*/
+            var extension = file.mimetype.split('/')[1];
+            var pathDestinyFile = extension=='pdf' ? "books/"+key: "covers/"+key
+            
+            const blob = bucket.file(pathDestinyFile)
+        
+            const promise = new Promise((resolve, reject) => {
+                const blobWriter = blob.createWriteStream({metadata: {contentType: file.mimetype}});
+                blobWriter.on('error', () => {
+                    reject('error al subir archivo '+book.name);
+                }).on('finish', async () => {
+                    await db.collection('books').doc(key).set(book);
+                    resolve(key);
+                }).end(file.buffer);
+            });
+            promises.push(promise);
+            
         });
-        console.log("all books uploaded!")  
-        res.status(200).send("books uploaded!")
+        Promise.all(promises).then(promises => {
+            console.log("books uploaded")
+            res.status(200).send("books uploaded!")
+        }).catch(function(err) {
+            console.log(err.message); // some coding error in handling happened
+            res.send({ status: false, message: 'No books uploaded'});
+        });
+
+
     }
 });
+app.delete('/book', async (req, res) => {
+    await db.collection('books').doc(req.query.id).delete();
+    await bucket.file("books/"+req.query.id).delete();
+    await bucket.file("covers/"+req.query.id).delete();
+    console.log("book deleted")
+    res.status(200).send("book deleted!")
+})
 
 app.listen(3000, ()=>{
     console.log("listeniing at port:3000")

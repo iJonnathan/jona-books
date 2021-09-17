@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" class="fullScreen">
     <Home/>
           <!-- <a class="waves-effect waves-light btn-small" id="btn1" ><i class="material-icons">delete</i></a>
 
@@ -21,42 +21,14 @@ export default {
   components: {
     Home
   },
-  data(){
-    return{
-      category:'3'
-    }
-  },
+  
   mounted () {
     M.AutoInit();
-  },
-//   methods:{
-// change(){
-//       alert()
-//       document.getElementById('select1').value = '1'
-//       //$("#select1").val;
-//     },
-//   }
+  }
 }
 </script>
 <style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
-  text-align: center;
-}
-
-#nav {
-  padding: 30px;
-
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
-    }
+  .fullScreen{
+    width: 100%; max-width:initial; margin:0
   }
-}
 </style>

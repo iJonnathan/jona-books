@@ -1,12 +1,12 @@
 <template>
-  <div class="uploadBooks">          
-    <div class="container" style="width:90%">
+  <div class="uploadBooks center-align">  
+    <div class="container" style="width: 100%; max-width:initial; margin:0">
       <div class="row">
         
         <!-- upload -->
-        <div class="col s7">
+        <div class="col s6">
         <!-- form -->
-          <div class="container ">
+          <div class="container" style="width:80%">
             <div class="row">
               <div class="input-field col s12 m12">
                   <input autocomplete="off"  id="name" v-model="selectedBookUpload.name" type="text">
@@ -23,11 +23,11 @@
 
               <!-- delete button -->
               <div class="col s1 left-align" style="padding:7px">
-                <a class="waves-effect waves-light btn-small" v-on:click="removeBook()" :disabled="!selectedBookUpload.file"><i class="material-icons">delete</i></a>
+                <a class="waves-effect waves-light btn-small" v-on:click="removeUploadBook()" :disabled="!selectedBookUpload.file"><i class="material-icons">delete</i></a>
               </div>
               <!-- button upload books -->
               <div class="col s11 right-align" style="padding:7px">
-                <a class="waves-effect waves-light btn-small" v-on:click="submitBooks()" :disabled="!AllInfoAreComplete()">Upload books</a>
+                <a class="waves-effect waves-light btn-small" v-on:click="submitBooks()" :disabled="!allInfoToUploadAreComplete()">Subir Libros</a>
               </div>
               <!-- input import books -->
               <div class="col s12 divImportbooks">
@@ -35,17 +35,17 @@
                   <div class="file-field input-field">
                       <input type="file" multiple name="books" @change="importBooks" accept=".pdf">
                       <div class="file-path-wrapper center-align" style="padding-top:15px;">
-                        <label style="font-size:15px;" >Import Book</label>
+                        <label style="font-size:15px;" >Importar Libros</label>
                       </div>
                   </div>
                 </div>
                 <!-- list -->
                 <div id="listt" v-if="listBooksToUpload.length > 0">
                   <div class="row">
-                    <div class="col s12 m12 l12" :class="{'bookUploadSelected': selectedBookUpload!=null && book.name==selectedBookUpload.name }"   :key="index" v-for="(book, index) in listBooksToUpload" @click="chooseBook(book)">
-                      <div class="col s1 m1 l1 " style="padding-top:7%">
-                        <i v-if="completeEdit(book)" class="material-icons"  :style="'color:green'">check_circle_outline</i>
-                        <i v-if="!completeEdit(book)" class="material-icons"  :style="'color:#F30202'">highlight_off</i>
+                    <div class="col s12 m12 l12" :class="{'bookSelected': book.name==selectedBookUpload.name }"   :key="index" v-for="(book, index) in listBooksToUpload" @click="chooseBookUpload(book)">
+                      <div class="col s1 m1 l1 " style="padding-top:30px">
+                        <i v-if="isCompleteToUploadBook(book)" class="material-icons"  :style="'color:green'">check_circle_outline</i>
+                        <i v-if="!isCompleteToUploadBook(book)" class="material-icons"  :style="'color:#F30202'">highlight_off</i>
                       </div>
                       <div class="col s2 m2 l2 ">
                         <div class="file-field input-field left-align" >
@@ -58,7 +58,7 @@
                             </div>
                         </div>
                       </div>
-                      <div class="col s9 m9 l9" style="padding-top:3%">
+                      <div class="col s9 m9 l9" style="padding-top:2%">
                         <div><span class="title"><label style="font-size:14px; word-break: break-all;" ><b>{{book.name}}</b></label></span></div>
                         <div><span class="title"><label style="font-size:14px; word-break: break-all;" >{{book.author}}</label></span></div>
                         <div><span class="title"><label style="font-size:14px; word-break: break-all;" >{{book.category}}</label></span></div>
@@ -72,117 +72,215 @@
         </div>
 
         <!-- listbooks -->
-        <div class="col s5">      
-          <ul class="collection ">
-            <li class="collection-item avatar ">
-              <img src="images/yuna.jpg" alt="" class="circle">
-              <span class="title">Title</span>
-              <p>First Line <br>
-                Second Line
-              </p>
-              <a href="#!" class="secondary-content"><i class="material-icons">grade</i></a>
-            </li>
-            <li class="collection-item avatar">
-              <i class="material-icons circle">folder</i>
-              <span class="title">Title</span>
-              <p>First Line <br>
-                Second Line
-              </p>
-              <a href="#!" class="secondary-content"><i class="material-icons">grade</i></a>
-            </li>
-          </ul>
+        <div class="col s6 " >
+          <div class="container" style="width:80%">
+            <div class="row">
+
+              <div class="input-field col s5">
+                <select id="selectCategories" v-model="selectedCategory">
+                  <option value="" selected>All</option>
+                  <option :key="category" v-for="category in listCategories" :value="category">{{category}}</option>
+                </select>
+                <label>Categorías</label>
+              </div>
+              <div class="input-field col s7">
+                <select id="selectAuthors" v-model="selectedAuthor">
+                  <option value="" selected>All</option>
+                  <option :key="author" v-for="author in listAuthors" :value="author">{{author}}</option>
+                </select>
+                <label>Autores</label>
+              </div>
+              <div class="input-field col s12" >
+                <input placeholder="Buscar ..." id="search" type="text" v-model="search">
+              </div>
+              <div class="input-field col s11 divListBooks" style="height:auto;overflow-x: hidden;overflow-y: scroll;max-height:600px">
+                <div style="margin:0;padding:1%; border-bottom: 1px dotted gray;"  class="col s12 m12 l12" :class="{'bookSelected': book.id==selectedBook.id }"   :key="book.id" v-for="book in filterBooks" @click="chooseBook(book)">
+                  <!-- <li class=" collection-item avatar "  :class="{'bookSelectedd': book.name==selectedBook.name }" :key="book.name" v-for="book in filterBooks" @click="chooseBook(book)" > -->
+                    <!-- <img :src="book.coverpath" alt="" class="circle"> -->
+                    <div class="col s1 m1 l1 " >
+                      <Book :coverpath="book.coverpath" :widthBook="'42'" :heightBook="'67'" />
+                    </div>
+                    <div class="col s11 m11 l11" >
+                      <div><span class="title"><label style="font-size:14px; word-break: break-all;" ><b>{{book.name}}</b></label></span></div>
+                      <div><span class="title"><label style="font-size:14px; word-break: break-all;" >{{book.author}}</label></span></div>
+                      <div><span class="title"><label style="font-size:14px; word-break: break-all;" >{{book.category}}</label></span></div>
+                    </div>
+                </div>
+              </div>
+              <div class="col s1" >
+                <div style="padding-top:30% blue">
+                  <a class="waves-effect waves-light btn-small  modal-trigger" href="#modalRemove"  :disabled="selectedBook.name==''"><i class="material-icons">delete</i></a>
+                </div>
+                <!-- MODAL TO REMOVE BOOK -->
+                <!-- <div  class="modal" style="width:50%; height:50%"> -->
+                <div id="modalRemove" class="modal " style=" height:340px;width:50%">
+                  <div class="modal-content grey lighten-2">
+                    <h4>¿Estás seguro de eliminar este libro?</h4>
+                    <hr><br>
+                    <div class="container" style="width: 100%; max-width:initial; margin:0">
+                      <div class="row">
+                        <div class="col s3 m3 l3 blue" style="padding-left:15%" >
+                          <Book :coverpath="selectedBook.coverpath" :widthBook="'82'" :heightBook="'134'" />
+                        </div>
+                        <div class="col s9 m9 l9" >
+                          <h6><b>{{selectedBook.name}}</b></h6>
+                          <h6>{{selectedBook.author}}</h6>
+                          <h6>{{selectedBook.category}}</h6>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <a class="waves-effect waves-green btn-flat" v-on:click="removeBook()">Pues si</a>
+                  </div>
+                </div>        
+                <!-- <div style="padding-top:10%">
+                  <a id="btnEdit" class="waves-effect waves-light btn-small" v-on:click="editBook()" :disabled="selectedBook.name==''"><i class="material-icons">edit</i></a>
+                </div> -->
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
     </div>
+
+    
   </div>
 </template>
 
 <script>
 import Search from '@/components/Search.vue'
 import axios from 'axios'
-// const $ = require("jquery");
+
+import { mapState } from "vuex";
+import Book from '@/components/Book.vue'
+
+const $ = require("jquery");
 // Lo declaramos globalmente
-// window.$ = $;
+window.$ = $;
 export default {
   
   name: 'UploadBooks',
   components: {
-    Search
+    Search, Book
   },
   data () {
     return {
+      listBooksToUpload: [],
       selectedBookUpload: {
           name:'', author:'', category: '', file: null, cover: null, coverpath:''
       },
-      listBooksToUpload: [],
-      books: [],
-      progress: 0,
-      category: '',
+      search:'',
+      selectedBook: {
+        id:'', name:'', author:'', category: '', file: null, cover: null, coverpath:''
+      },
+      selectedCategory: '',
+      selectedAuthor:''
       
     }
   },
+  watch:{
+      uploadComponetIsLoad:function(state) {
+        if(state){
+          // RECARGO LOS ELEMENTOS DEL SELECT
+          var elems = document.querySelectorAll('select');
+          M.FormSelect.init(elems);
+          // 
+          this.loadAutocompleteCategoriesAndAuthors();
+          //
+          this.selectedBookUpload = {
+              name:'', author:'', category: '', file: null, cover: null, coverpath:''
+          };
+          this.selectedBook = {
+            id:'', name:'', author:'', category: '', file: null, cover: null, coverpath:''
+          }
+          
+        }
+      },
+  },
+  beforeCreate(){
+    this.$store.commit('getBooksInfo');
+  },
+  mounted(){
+
+          // INICIO EL MODAL PARA ELEIMINAR LIBRO
+          M.Modal.init(document.querySelectorAll('#modalRemove'));
+  },
+
   computed:{
-    categories(){
-      var data = {
-            "Filosofía": null,
-            "Astronomía": null,
-            "Programación": null,
-          }
-      return data
+    ...mapState({
+      listBooks: 'listBooks',
+      listCategories: 'listCategories',
+      listAuthors: 'listAuthors',
+      uploadComponetIsLoad:'uploadComponetIsLoad'
+    }),
+
+    filterBooks: function(){
+      var collator = new Intl.Collator('es');
+      var filtered = this.listBooks.filter((book) => {
+        if( (this.selectedCategory == '' && this.selectedAuthor == '') ||
+            (this.selectedCategory == '' && this.selectedAuthor != '' && book.author == this.selectedAuthor) ||
+            (this.selectedCategory != '' && this.selectedAuthor == '' && book.category == this.selectedCategory) ||
+            (this.selectedCategory != '' && this.selectedAuthor != '' && book.category == this.selectedCategory && book.author == this.selectedAuthor)){
+              if(book.name.toLowerCase().match(this.search.toLowerCase()) 
+              || book.category.toLowerCase().match(this.search.toLowerCase())
+              || book.author.toLowerCase().match(this.search.toLowerCase())){
+                   return book;
+              }
+        }
+      }).sort(function(a,b){return collator.compare(a.name, b.name)})
+      return filtered;
     },
-    authors(){
-      var data = {
-            "Eckart Tolle": null,
-            "Platon": null,
-            "Socrates": null,
-          }
-      return data
-    }
   },
 
       
   methods: {
-    loadCategoriesAndAuthors(){
-      var thisComponent = this;
-      var inputAuthor = document.getElementById("author");
-      var inputCategory = document.getElementById("category");
-      M.Autocomplete.init(inputAuthor, {
-        data: this.authors, 
-        onAutocomplete: function(res) {
-          thisComponent.selectedBookUpload.author = res
-        },  
+    loadAutocompleteCategoriesAndAuthors(){
+      var thisComponent = this
+      var categoriesAutocomplete = {}
+      var authorsAutocomplete = {}
+      // AGREGO LAS CATEGORIAS A LOS RESPECTIVOS COMPONENTES
+      this.listCategories.forEach(category => {
+        categoriesAutocomplete[category] = null
       });
-      M.Autocomplete.init(inputCategory, {
-        data: this.categories, 
+      M.Autocomplete.init(document.getElementById("category"), {
+        data: categoriesAutocomplete, 
         onAutocomplete: function(res) {
           thisComponent.selectedBookUpload.category = res
         },  
       });
-    },
-    initComponet(){
+      // AGREGO LOS AUTORES A LOS RESPECTIVOS COMPONENTES
+      this.listAuthors.forEach(author => {
+        authorsAutocomplete[author] = null
+      });
+      M.Autocomplete.init(document.getElementById("author"), {
+        data: authorsAutocomplete, 
+        onAutocomplete: function(res) {
+          thisComponent.selectedBookUpload.author = res
+        },  
+      });
       
     },
-    AllInfoAreComplete(){
+    allInfoToUploadAreComplete(){
         var allComplete = true
         if(this.listBooksToUpload.length == 0) {
            allComplete = false;
         }
         this.listBooksToUpload.forEach(book => {
-          if(!this.completeEdit(book)) {
+          if(!this.isCompleteToUploadBook(book)) {
             allComplete= false
           }
         });
         return allComplete
         
     },
-    completeEdit(book){
+    isCompleteToUploadBook(book){
       if(book.name!='' && book.cover && book.file && book.author!='' && book.category!='' && book.coverpath!=''){
         return true
       }else {
         return false
       }
-
     },
     importBooks (event) {
       for (var [key, value] of Object.entries(event.target.files)) {
@@ -191,24 +289,20 @@ export default {
         })
       }
       this.selectedBookUpload = this.listBooksToUpload[0];
-      this.loadCategoriesAndAuthors()
       document.getElementById("name").focus();
-
-
-      
     },
-    chooseBook(book){
-      const index = this.listBooksToUpload.indexOf(book);
-      this.selectedBookUpload = this.listBooksToUpload[index]
-    },
-    importCover (event) {
+    importCover(event) {
       for (var [key, value] of Object.entries(event.target.files)) {
           this.selectedBookUpload.cover = value
           this.selectedBookUpload.covername = value.name
       }
       this.selectedBookUpload.coverpath = URL.createObjectURL(event.target.files[0]);
     },
-    removeBook(){
+    chooseBookUpload(book){
+      const index = this.listBooksToUpload.indexOf(book);
+      this.selectedBookUpload = this.listBooksToUpload[index]
+    },
+    removeUploadBook(){
       const index = this.listBooksToUpload.indexOf(this.selectedBookUpload);
       this.listBooksToUpload.splice(index,1);
       if(this.listBooksToUpload.length>0) {
@@ -221,33 +315,23 @@ export default {
       }
     },
     submitBooks(){
-      if(this.AllInfoAreComplete()){
+      if(this.allInfoToUploadAreComplete()){
         let formData = new FormData();
         for( var i = 0; i < this.listBooksToUpload.length; i++ ){
-          //let book = this.listBooksToUpload[i].file;
-          //let cover = this.listBooksToUpload[i].cover;
-          //formData.append('books[' + i + ']', book);
           formData.append('name[' + i + ']', this.listBooksToUpload[i].name);
           formData.append('author[' + i + ']', this.listBooksToUpload[i].author);
           formData.append('category[' + i + ']', this.listBooksToUpload[i].category);
+          formData.append('books[' + i + ']', this.listBooksToUpload[i].file);
+          formData.append('covers[' + i + ']', this.listBooksToUpload[i].cover);
         }
-        for( var i = 0; i < this.listBooksToUpload.length; i++ ){
-          let book = this.listBooksToUpload[i].file;
-          let cover = this.listBooksToUpload[i].cover;
-          formData.append('books[' + i + ']', book);
-          formData.append('covers[' + i + ']', cover);
-        }
-        
-        //formData.append('booksInfo', this.listBooksToUpload);
-  
-  
         axios.post( 'http://localhost:3000/books',
           formData,{
             headers: { 'Content-Type': 'multipart/form-data' } 
           })
         .then(response => {
           console.log(response.data)
-          //this.listBooksToUpload = []
+          this.$store.commit('getBooksInfo');
+          this.listBooksToUpload = []
           
         }).catch(errors => console.log(errors));
       }
@@ -255,27 +339,32 @@ export default {
         alert("existe información incompleta")
       }
     },
-    getBooks(){
-      axios.get( 'http://localhost:3000/books')
-      .then(response => {
+    chooseBook(book){
+
+      this.selectedBook = book
+    },
+    removeBook(){
+      axios.delete( 'http://localhost:3000/book',{params: { id: this.selectedBook.id }}).then(response => {
+        //book.coverpath = window.URL.createObjectURL(new Blob([res.data]));
         console.log(response.data)
-        
+        var elem = document.getElementById("modalRemove");
+        var instance = M.Modal.getInstance(elem);
+        instance.close();
+        this.$store.commit('getBooksInfo');
+
+
       }).catch(errors => console.log(errors));
     },
-    getBooksNames(){
-      axios.get( 'http://localhost:3000/books_names')
-      .then(response => {
-        console.log(response.data)
-        
-      }).catch(errors => console.log(errors));
-    },
-    selectCategory(event){
-      this.selectedBookUpload.category = event.target.value;
+    editBook(){
+     //this.initComponet()
+     this.listBooks.push(this.listBooks[0])
+     
     }
   }
 }
 </script>
-<style scoped>
+<style lang="scss" >
+
 
 .divImportbooks{
   border: 1px dashed rgb(106, 123, 128) ;
@@ -287,18 +376,28 @@ export default {
   height: auto;   
   margin: 0% 15% 0% 15%;
 }
+.divListBooks{
+  border: 1px dashed rgb(106, 123, 128) ;
+  border-radius: 20px;
+  min-height: 90px; 
+  
+}
 .divImportcover{
   border: 1px dashed rgb(106, 123, 128) ;
   border-radius: 5px; 
-  width: 100%;
+  width: 53px;
   margin: 0;
   padding:0;
 }
-.bookUploadSelected{
+.bookSelected{
+  background-color: #765e8036;
+}
+.bookSelectedd{
   background-color: #765e8036;
 }
 .contentMiddle{
   display: flex;justify-content: center;align-items: center;
 }
+
 
 </style>
