@@ -1,5 +1,5 @@
 <template>
-  <div class="book-component" style="width:80px;padding-left:4%">
+  <div class="book-component" >
     <div class="book-container " :style="cssVars">
       <div class="book">
         <img :src="coverpath">

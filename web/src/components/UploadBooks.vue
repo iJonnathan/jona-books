@@ -145,7 +145,9 @@
       </div>
     </div>
 
-    
+    <img src="" id="output">
+    <img src="" id="imgcover" style="display:none">
+    <canvas id="canvascover" style="display:none"></canvas>
   </div>
 </template>
 
@@ -203,9 +205,8 @@ export default {
     this.$store.commit('getBooksInfo');
   },
   mounted(){
-
-          // INICIO EL MODAL PARA ELEIMINAR LIBRO
-          M.Modal.init(document.querySelectorAll('#modalRemove'));
+    // INICIO EL MODAL PARA ELEIMINAR LIBRO
+    M.Modal.init(document.querySelectorAll('#modalRemove'));
   },
 
   computed:{
@@ -292,11 +293,41 @@ export default {
       document.getElementById("name").focus();
     },
     importCover(event) {
-      for (var [key, value] of Object.entries(event.target.files)) {
-          this.selectedBookUpload.cover = value
-          this.selectedBookUpload.covername = value.name
+
+      var canvas = document.getElementById("canvascover");
+      var context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      var component = this;
+      var reader = new FileReader();
+
+      // REDIMENCIONAR EL COVER
+      reader.onload = async function(e) {
+          var img = document.getElementById("imgcover");
+          img.src = e.target.result;
+
+          var canvas = document.getElementById("canvascover");
+          var MAX_WIDTH = 100;
+          var MAX_HEIGHT = 150;
+          canvas.width = MAX_WIDTH;
+          canvas.height = MAX_HEIGHT;
+          var ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, MAX_WIDTH, MAX_HEIGHT);
+          var dataurl =  await canvas.toDataURL("image/png",1.0);
+          
+          component.selectedBookUpload.coverpath = dataurl
+          component.selectedBookUpload.cover = component.dataURLtoFile(dataurl, 'cover.png');
       }
-      this.selectedBookUpload.coverpath = URL.createObjectURL(event.target.files[0]);
+      reader.readAsDataURL(event.target.files[0]);
+    },
+
+    dataURLtoFile(dataurl, filename) {
+      var arr = dataurl.split(',');
+      var mime = arr[0].match(/:(.*?);/)[1];
+      var bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+      while(n--){
+          u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new File([u8arr], filename, {type:mime});
     },
     chooseBookUpload(book){
       const index = this.listBooksToUpload.indexOf(book);

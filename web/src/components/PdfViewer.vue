@@ -2,7 +2,7 @@
   <div id="PdfViewer">
     <div v-if="pdfViewerComponentIsLoad">
 
-<p class="arrow">
+      <p class="arrow">
         <!-- Anterior -->
         <span
           @click="changePdfPage(0)"
@@ -32,6 +32,9 @@
       </pdf>
 
     </div>
+    <div v-if="!pdfViewerComponentIsLoad">
+      cargando ...
+    </div>
   </div>
 </template>
 
@@ -43,6 +46,12 @@ export default {
   name: 'PdfViewer',
   components: {
     pdf
+  },
+  props: {
+    idBook: {
+      type: String,
+      default: ''
+    },
   },
   data() {
     return {
@@ -66,11 +75,15 @@ export default {
           
         }
       },
-  },
-  beforeCreate(){
-    this.$store.commit('getBookFile','b2cf678a2950aa7b9dcdb7e84896964a64ed2ed3');
+      idBook:function(value){
+        alert(value)
+        if(value != ''){
+          }
+      }
   },
   mounted() {
+    var thisComponetn = this;
+      this.$store.commit('getBookFile',this.idBook);
   },
   computed:{
     ...mapState({
@@ -97,8 +110,7 @@ export default {
     },
     // Cierra la caja de viñetas
     print() {
-      this.i = 3;
-      console.log(Object.keys(pdf))
+      document.getElementById("2").focus();
     }
   }
   

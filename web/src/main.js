@@ -12,6 +12,7 @@ import 'material-icons/iconfont/material-icons.css';
 // import 'bootstrap/dist/css/bootstrap.min.css'
 
 Vue.config.productionTip = false
+window.serverUrl = process.env.VUE_APP_SERVER_IP + ':' + process.env.VUE_APP_SERVER_PORT + process.env.VUE_APP_SERVER_BASE_URL
 
 new Vue({
   router,

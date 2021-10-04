@@ -1,15 +1,6 @@
 <template>
-  <div id="app" class="fullScreen">
-    <Home/>
-          <!-- <a class="waves-effect waves-light btn-small" id="btn1" ><i class="material-icons">delete</i></a>
-
-    <select id="select1" v-model="category">
-      <option value="" selected>All</option>
-      <option value="1">Option 1</option>
-      <option value="2">Option 2</option>
-      <option value="3">Option 3</option>
-    </select>
-    <label>Categoría</label> -->
+  <div id="app" class="app fullScreen">
+        <router-view></router-view>
   </div>
 </template>
 <script>
@@ -24,11 +15,18 @@ export default {
   
   mounted () {
     M.AutoInit();
+    // SET SIZE OF SCREEN
+    this.$store.commit('setWidthScreen',document.querySelector('.app').offsetWidth);
+    //KEEP REFRESH PAGE WHEN CLICK BACK BUTTON
+    window.onpopstate = function () {
+      location.reload()
+  };
   }
 }
 </script>
 <style lang="scss">
   .fullScreen{
-    width: 100%; max-width:initial; margin:0
+    width: 100%; max-width:initial; margin:0;
+    background-color:#e4e4e4;
   }
 </style>

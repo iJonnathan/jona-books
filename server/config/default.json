@@ -1,0 +1,20 @@
+{
+    "jonaBooks": {
+      "dbConfig": {
+        "host": "localhost",
+        "port": 5432,
+        "dbName": "hidren",
+        "user": "hidren",
+        "passwd": "hidren"
+      },
+      "serverConfig": {
+        "port": 8000,
+        "baseUrl": "/api"
+      },
+      "securityConfig": {
+        "publicKeyFile": "../certs/public.key",
+        "privateKeyFile": "../certs/private.key"
+      }
+  
+    }
+  }

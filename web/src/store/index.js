@@ -1,26 +1,54 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios'
+import Admin from '@/views/Admin.vue'
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
+    currentComponet:Admin,
+
     listBooks: [],
     keysBooks: [],
     listCategories: [],
     listAuthors: [],
     uploadComponetIsLoad: false,
     bookFilePath: null,
-    pdfViewerComponentIsLoad: false
+    pdfViewerComponentIsLoad: false,
+    widthScreen: 0,
+    widthBook:'',
+    heightBook:''
 
     
   },
   mutations: {
+    setCurrentComponent(state, component){
+      state.currentComponet = component
+    },
+    // REDIMENCIONAL EL TAMAÑO DE LOS LIBROS
+    setWidthScreen(state,value){
+      state.widthScreen = value;
+      let x = parseFloat(value)/18.8
+      let y = parseFloat(value)/12.8
+      if(x < 70 || y < 90){
+        state.widthBook = '70'
+        state.heightBook = '90'
+      }
+      else if(x > 105 || y > 150){
+        state.widthBook = '105'
+        state.heightBook = '150'
+      }
+      else{
+        state.widthBook= String(x);
+        state.heightBook=  String(y);
+      }
+    },
     add(state, val){
       state.listAuthors.push(val)
     },
     getBookFile (state, id) {
+      console.log("entrando")
       state.pdfViewerComponentIsLoad= false
       
       let options = {
@@ -28,7 +56,8 @@ export default new Vuex.Store({
         params: { id: id },
         headers: {'Content-Type': 'application/pdf'}
       }
-      axios.get( 'http://localhost:3000/book',options)
+      //axios.get( 'http://localhost:3000/book',options)
+      axios.get( window.serverUrl+'/book',options)
       .then(response => {
         console.log(response.data);
         state.bookFilePath = window.URL.createObjectURL(new Blob([response.data]));
@@ -50,7 +79,9 @@ export default new Vuex.Store({
     },
     getBooksInfo(state){
       state.uploadComponetIsLoad = false;
-      axios.get( 'http://localhost:3000/books')
+      console.log(window.serverUrl+'/coverbook')
+      //axios.get( 'http://localhost:3000/books')
+      axios.get(  window.serverUrl+'/books')
       .then( async response => {
         //state.listBooks = response.data;
 
@@ -81,7 +112,8 @@ export default new Vuex.Store({
           if (!state.listCategories.includes(book.category)) state.listCategories.push(book.category)
           if (!state.listAuthors.includes(book.author)) state.listAuthors.push(book.author)
           // get covers
-          axios.get( 'http://localhost:3000/coverbook',optionsGetCover)
+          // axios.get( 'http://localhost:3000/coverbook',optionsGetCover)
+          axios.get(  window.serverUrl+'/coverbook',optionsGetCover)
           .then(res => {
             book.coverpath = window.URL.createObjectURL(new Blob([res.data]));
           }).catch(errors => console.log(errors));
