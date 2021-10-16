@@ -355,7 +355,7 @@ export default {
           formData.append('books[' + i + ']', this.listBooksToUpload[i].file);
           formData.append('covers[' + i + ']', this.listBooksToUpload[i].cover);
         }
-        axios.post( 'http://localhost:3000/books',
+        axios.post(  window.serverUrl+'/books',
           formData,{
             headers: { 'Content-Type': 'multipart/form-data' } 
           })
@@ -375,7 +375,7 @@ export default {
       this.selectedBook = book
     },
     removeBook(){
-      axios.delete( 'http://localhost:3000/book',{params: { id: this.selectedBook.id }}).then(response => {
+      axios.delete(  window.serverUrl+'/book',{params: { id: this.selectedBook.id }}).then(response => {
         //book.coverpath = window.URL.createObjectURL(new Blob([res.data]));
         console.log(response.data)
         var elem = document.getElementById("modalRemove");

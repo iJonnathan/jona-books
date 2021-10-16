@@ -16,7 +16,8 @@ export default {
   mounted () {
     M.AutoInit();
     // SET SIZE OF SCREEN
-    this.$store.commit('setWidthScreen',document.querySelector('.app').offsetWidth);
+    console.log($(document).height()+ "   "+document.querySelector('.app').offsetWidth)
+    this.$store.commit('setWidthScreen', document.querySelector('.app').offsetWidth);
     //KEEP REFRESH PAGE WHEN CLICK BACK BUTTON
     window.onpopstate = function () {
       location.reload()

@@ -45,10 +45,15 @@ app.use(baseUrl , services)
 
 // })
 
+app.get('/init', (req, res) => {
+  
+    res.send({msj:"this is jonabooks-server"})
+  
+})
 module.exports = app
 
 
-app.listen(port, ()=>{
+app.listen(process.env.PORT || port, () => {
     console.log("listeniing at port: "+port)
     console.log(baseUrl)
 });

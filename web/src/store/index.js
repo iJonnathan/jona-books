@@ -17,6 +17,7 @@ export default new Vuex.Store({
     bookFilePath: null,
     pdfViewerComponentIsLoad: false,
     widthScreen: 0,
+    heightScreen: 0,
     widthBook:'',
     heightBook:''
 
@@ -27,10 +28,11 @@ export default new Vuex.Store({
       state.currentComponet = component
     },
     // REDIMENCIONAL EL TAMAÑO DE LOS LIBROS
-    setWidthScreen(state,value){
-      state.widthScreen = value;
-      let x = parseFloat(value)/18.8
-      let y = parseFloat(value)/12.8
+    setWidthScreen(state,valueW){
+      state.widthScreen = valueW;
+      state.heightScreen = $(document).height();
+      let x = parseFloat(valueW)/18.8
+      let y = parseFloat(valueW)/12.8
       if(x < 70 || y < 90){
         state.widthBook = '70'
         state.heightBook = '90'
@@ -60,7 +62,7 @@ export default new Vuex.Store({
       axios.get( window.serverUrl+'/book',options)
       .then(response => {
         console.log(response.data);
-        state.bookFilePath = window.URL.createObjectURL(new Blob([response.data]));
+        state.bookFilePath = URL.createObjectURL(new Blob([response.data], {type: "application/pdf"}));
         state.pdfViewerComponentIsLoad = true
   //       const link = document.createElement('a');
   // link.href = state.bookFilePath;

@@ -1,35 +1,8 @@
 <template>
-  <div id="PdfViewer">
+  <div id="PdfViewer" style="margin:0px;padding:0px;overflow:hidden">
     <div v-if="pdfViewerComponentIsLoad">
-
-      <p class="arrow">
-        <!-- Anterior -->
-        <span
-          @click="changePdfPage(0)"
-          class="currentPage"
-          :class="{ grey: currentPage == 1 }"
-          >Anterior&nbsp;&nbsp;</span
-        >
-        <span style="color: #8c8e92;">{{ currentPage }} / {{ pageCount }}</span>
-        <!--  Página siguiente -->
-        <span
-          @click="changePdfPage(1)"
-          class="currentPage"
-          :class="{ grey: currentPage == pageCount }"
-          >&nbsp;&nbsp;Página siguiente</span
-        >&nbsp;&nbsp;&nbsp;&nbsp;<button @click="print()">Descargar abajo</button>
-
-      </p>
-      <pdf :id="i"
-        ref="pdf"
-        :src="bookFilePath"
-        v-for="i in numPages"
-        :key="i"
-        :page="i"
-        @num-pages="pageCount = $event"
-        @page-loaded="currentPage = $event"
-        @loaded="2">
-      </pdf>
+      <iframe id="miframe" :src="bookFilePath" width="100%" :height="'100%'" type="application/pdf" style="overflow:hidden;overflow-x:hidden;overflow-y:hidden;height:100%;width:100%;position:absolute;top:0px;left:0px;right:0px;bottom:0px">
+    </iframe>
 
     </div>
     <div v-if="!pdfViewerComponentIsLoad">
@@ -60,7 +33,8 @@ export default {
       src: null,
       numPages:0,
       link:0,
-      i:0
+      i:0,
+
     };
   },
   watch:{
@@ -68,11 +42,19 @@ export default {
         if(state){
           // RECARGO LOS ELEMENTOS DEL SELECT
          
-            this.src =  pdf.createLoadingTask(this.bookFilePath);
-            this.src.promise.then(pdf => {
-                this.numPages = pdf.numPages;
-            });
-          
+            // this.src =  pdf.createLoadingTask(this.bookFilePath);
+            // this.src.promise.then(pdf => {
+            //     this.numPages = pdf.numPages;
+            // });
+  //         let a = document.createElement("a");
+  // a.href = this.bookFilePath;
+  // a.download = "file.pdf";
+  // document.body.appendChild(a);
+  // console.log(".......... "+this.bookFilePath);
+  // a.click();
+
+  // var iFrame=document.getElementById("miframe").src = 'http://www.fao.org/3/i3388s/i3388s.pdf'
+            
         }
       },
       idBook:function(value){
@@ -84,11 +66,14 @@ export default {
   mounted() {
     var thisComponetn = this;
       this.$store.commit('getBookFile',this.idBook);
+
+      
   },
   computed:{
     ...mapState({
       bookFilePath: 'bookFilePath',
-      pdfViewerComponentIsLoad: 'pdfViewerComponentIsLoad'
+      pdfViewerComponentIsLoad: 'pdfViewerComponentIsLoad',
+      heightScreen: 'heightScreen',
     })
   },
   methods: {
