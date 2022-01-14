@@ -8,4 +8,4 @@
     completo todos los requerimientos con yes, no, yes(overwrite)
 4. npm run build
 
-5. npm deploy
+5. firebase deploy

@@ -6,7 +6,7 @@
 <script>
 // @ is an alias to /src
 import Home from '@/views/Home.vue'
-import M from 'materialize-css'
+//import M from 'materialize-css'
 export default {
   name: 'App',
   components: {

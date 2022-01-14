@@ -7,6 +7,12 @@
           <ul class="left">
             <li><a><i class="hamburger material-icons hide-on-med-and-up">menu</i></a></li>
           </ul>
+          <div class="left" style="margin-left:3%">
+            <a onclick="window.location.href=this">
+              <img name="logo" src="../assets/logoBooksShelf.png" style="height:60px;"/> 
+            </a>
+          </div>
+          
           <form action="" method="post">
               <div class="input-field">
                   <input autocomplete="off" v-model="search" style="background-color:#f4f4f4" id="search" type="search" name="search"   placeholder="Buscar ...">
